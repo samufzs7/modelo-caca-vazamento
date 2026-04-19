@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaDetect — Sistema de Gestão</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060d1a;--bg2:#0d1929;--bg3:#0f2035;--bg4:#142840;
+  --orange:#f97316;--orange2:#ea6c0a;
+  --blue:#1e6fa8;--blueL:#3b9fd8;--blueD:#0d3d5e;
+  --text:#e8f0f8;--text2:#8ba8c4;--text3:#4d6e8a;
+  --border:#1a3350;--border2:#243d5a;
+  --green:#22c55e;--greenD:#166534;--greenL:#dcfce7;
+  --red:#ef4444;--redD:#7f1d1d;--yellow:#fbbf24;
+  --card-r:12px
+}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{flex:1;overflow:hidden}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.content{padding:24px;overflow-y:auto;height:calc(100vh - 60px)}
+
+.logo{padding:20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--orange),var(--orange2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.logo-text{font-size:15px;font-weight:700;color:var(--text)}
+.logo-sub{font-size:10px;color:var(--text2);font-weight:400;letter-spacing:.5px}
+.nav-section{padding:12px 0}
+.nav-label{font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;padding:0 16px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;transition:all .2s;border-left:3px solid transparent;font-size:13px;color:var(--text2)}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg3);color:var(--orange);border-left-color:var(--orange)}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.sidebar-footer{margin-top:auto;padding:12px 16px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blueL));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.user-name{font-size:12px;font-weight:600;color:var(--text)}
+.user-role{font-size:10px;color:var(--orange)}
+
+.topbar-title{font-size:16px;font-weight:600;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.notif-btn{position:relative;width:36px;height:36px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--orange);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#fff}
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{background:var(--orange2)}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.btn-sm{padding:5px 10px;font-size:11px}
+
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-r);padding:20px}
+.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-r);padding:20px;position:relative;overflow:hidden}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--orange),transparent)}
+.metric-label{font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.metric-value{font-size:28px;font-weight:700;color:var(--text);line-height:1;margin-bottom:6px;font-family:'JetBrains Mono',monospace}
+.metric-change{font-size:11px;display:flex;align-items:center;gap:4px}
+.metric-icon{position:absolute;right:16px;top:16px;font-size:28px;opacity:.15}
+.change-up{color:var(--green)}
+.change-down{color:var(--red)}
+
+.badge{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.badge-pending{background:#451a03;color:#fb923c}
+.badge-progress{background:#1e3a8a;color:#93c5fd}
+.badge-done{background:var(--greenD);color:var(--greenL)}
+.badge-cancel{background:#1c1917;color:#78716c}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:12px 14px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:var(--bg3)}
+.td-muted{color:var(--text2)}
+.avatar-sm{width:30px;height:30px;border-radius:50%;background:var(--blueD);border:1px solid var(--border2);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;margin-right:8px}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:15px;font-weight:600;color:var(--text)}
+.section-sub{font-size:12px;color:var(--text2);margin-top:2px}
+
+.tabs{display:flex;gap:4px;background:var(--bg3);border-radius:8px;padding:4px;margin-bottom:20px;flex-wrap:wrap}
+.tab{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .2s}
+.tab.active{background:var(--bg2);color:var(--text);border:1px solid var(--border)}
+
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;padding:0 4px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:4px 4px 0 0;min-height:4px;transition:all .3s;position:relative;overflow:hidden}
+.bar::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.1),transparent)}
+.bar-orange{background:var(--orange)}
+.bar-blue{background:var(--blueL)}
+.bar-label{font-size:9px;color:var(--text3);text-align:center}
+.bar-val{font-size:9px;color:var(--text2);font-weight:500}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-header{font-size:10px;color:var(--text3);font-weight:600;padding:4px}
+.cal-day{padding:6px;border-radius:6px;font-size:11px;color:var(--text2);cursor:pointer;position:relative;transition:background .2s}
+.cal-day:hover{background:var(--bg3)}
+.cal-day.today{background:var(--orange);color:#fff;font-weight:600}
+.cal-day.has-event::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--blueL)}
+.cal-day.today.has-event::after{background:#fff}
+
+.map-container{background:var(--bg3);border-radius:8px;position:relative;overflow:hidden;height:280px;border:1px solid var(--border)}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:30px 30px;opacity:.3}
+.map-pin{position:absolute;width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.5);transition:transform .2s}
+.map-pin:hover{transform:rotate(-45deg) scale(1.2)}
+.map-pin-inner{transform:rotate(45deg);font-size:12px}
+.pin-orange{background:var(--orange);border:2px solid #fff}
+.pin-blue{background:var(--blueL);border:2px solid #fff}
+.pin-green{background:var(--green);border:2px solid #fff}
+.map-legend{position:absolute;bottom:12px;left:12px;background:rgba(6,13,26,.9);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:10px}
+.legend-item{display:flex;align-items:center;gap:6px;color:var(--text2);margin-bottom:4px}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+.form-group{margin-bottom:16px}
+.form-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:block}
+.form-control{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'Sora',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .2s}
+.form-control:focus{border-color:var(--orange)}
+select.form-control option{background:var(--bg3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.progress-bar{background:var(--bg3);border-radius:20px;height:6px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:20px;transition:width .5s}
+
+.check-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;transition:background .2s;border:1px solid transparent}
+.check-item:hover{background:var(--bg3)}
+.check-item.checked{border-color:var(--greenD)}
+.check-box{width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:11px}
+.check-item.checked .check-box{background:var(--green);border-color:var(--green);color:#fff}
+.check-text{font-size:12px;color:var(--text)}
+.check-item.checked .check-text{text-decoration:line-through;color:var(--text2)}
+
+.timeline-item{display:flex;gap:14px;padding-bottom:16px;position:relative}
+.timeline-item::before{content:'';position:absolute;left:15px;top:30px;bottom:0;width:1px;background:var(--border)}
+.timeline-item:last-child::before{display:none}
+.tl-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.tl-content{flex:1;padding-top:6px}
+.tl-title{font-size:12px;font-weight:600;color:var(--text)}
+.tl-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.tl-time{font-size:10px;color:var(--text3);margin-top:3px}
+
+.notif-item{display:flex;gap:12px;padding:12px;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.notif-item:hover{border-color:var(--border2)}
+.notif-item.unread{border-left:3px solid var(--orange)}
+.notif-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+
+.finance-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.finance-row:last-child{border-bottom:none}
+.fin-label{font-size:12px;color:var(--text2)}
+.fin-value{font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.fin-in{color:var(--green)}
+.fin-out{color:var(--red)}
+
+.donut-wrap{position:relative;width:100px;height:100px;margin:0 auto 12px}
+.donut-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-val{font-size:18px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace}
+.donut-sub{font-size:9px;color:var(--text3);text-transform:uppercase}
+
+.upload-zone{border:2px dashed var(--border2);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s}
+.upload-zone:hover{border-color:var(--orange)}
+
+.wa-btn{background:#25D366;color:#fff;padding:10px 16px;border-radius:8px;border:none;cursor:pointer;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:all .2s}
+.wa-btn:hover{background:#128C7E}
+
+.view{display:none}
+.view.active{display:block}
+
+.tag{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:2px 8px;font-size:10px;color:var(--text2)}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.text-sm{font-size:12px;color:var(--text2)}
+.text-xs{font-size:10px;color:var(--text3)}
+.fw-600{font-weight:600}
+.text-orange{color:var(--orange)}
+.text-green{color:var(--green)}
+.text-red{color:var(--red)}
+.mt-8{margin-top:8px}
+.mt-16{margin-top:16px}
+.mt-20{margin-top:20px}
+.flex{display:flex;align-items:center}
+.gap-8{gap:8px}
+.gap-12{gap:12px}
+.gap-16{gap:16px}
+.justify-between{justify-content:space-between}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--text2)}
+
+.os-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;cursor:pointer;transition:border-color .2s}
+.os-card:hover{border-color:var(--border2)}
+.os-card.priority-high{border-left:3px solid var(--red)}
+.os-card.priority-med{border-left:3px solid var(--yellow)}
+.os-card.priority-low{border-left:3px solid var(--green)}
+.os-num{font-size:10px;font-weight:700;color:var(--orange);font-family:'JetBrains Mono',monospace;letter-spacing:1px}
+.os-title{font-size:13px;font-weight:600;color:var(--text);margin:4px 0}
+.os-addr{font-size:11px;color:var(--text2)}
+.os-meta{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+
+@media(max-width:900px){
+  .sidebar{width:56px}
+  .logo-text,.logo-sub,.nav-item span,.sidebar-footer .user-name,.sidebar-footer .user-role,.nav-label{display:none}
+  .nav-item{padding:12px;justify-content:center;border-left:none}
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .grid-3{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .grid-4,.grid-3,.grid-2{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .content{padding:12px}
+  .topbar{padding:0 12px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">💧</div>
+    <div>
+      <div class="logo-text">AquaDetect</div>
+      <div class="logo-sub">SISTEMA PRO</div>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Principal</div>
+    <div class="nav-item active" onclick="showView('dashboard')"><span class="nav-icon">📊</span><span>Dashboard</span></div>
+    <div class="nav-item" onclick="showView('os')"><span class="nav-icon">🔧</span><span>Ordens de Serviço</span></div>
+    <div class="nav-item" onclick="showView('clientes')"><span class="nav-icon">👥</span><span>Clientes</span></div>
+    <div class="nav-item" onclick="showView('agenda')"><span class="nav-icon">📅</span><span>Agenda</span></div>
+    <div class="nav-item" onclick="showView('mapa')"><span class="nav-icon">🗺️</span><span>Mapa</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Técnico</div>
+    <div class="nav-item" onclick="showView('checklist')"><span class="nav-icon">✅</span><span>Checklist</span></div>
+    <div class="nav-item" onclick="showView('midia')"><span class="nav-icon">📷</span><span>Fotos / Laudos</span></div>
+    <div class="nav-item" onclick="showView('relatorios')"><span class="nav-icon">📄</span><span>Relatórios PDF</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Gestão</div>
+    <div class="nav-item" onclick="showView('financeiro')"><span class="nav-icon">💰</span><span>Financeiro</span></div>
+    <div class="nav-item" onclick="showView('config')"><span class="nav-icon">⚙️</span><span>Configurações</span></div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">MR</div>
+      <div>
+        <div class="user-name">Marcos R.</div>
+        <div class="user-role">Administrador</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="page-title">Dashboard</div>
+    </div>
+    <div class="topbar-right">
+      <div style="font-size:11px;color:var(--text2)" id="clock"></div>
+      <div class="notif-btn" onclick="showView('notificacoes')">🔔<div class="notif-badge">3</div></div>
+      <button class="btn btn-primary btn-sm" onclick="showView('os-novo')">➕ Nova OS</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- DASHBOARD -->
+  <div class="view active" id="view-dashboard">
+    <div class="grid-4">
+      <div class="metric-card"><div class="metric-icon">🔧</div><div class="metric-label">OS este mês</div><div class="metric-value">47</div><div class="metric-change change-up">▲ 12% vs mês ant.</div></div>
+      <div class="metric-card"><div class="metric-icon">💰</div><div class="metric-label">Faturamento</div><div class="metric-value" style="font-size:20px">R$28.4k</div><div class="metric-change change-up">▲ 8% vs mês ant.</div></div>
+      <div class="metric-card"><div class="metric-icon">✅</div><div class="metric-label">Taxa Conversão</div><div class="metric-value">84%</div><div class="metric-change change-up">▲ 3% vs mês ant.</div></div>
+      <div class="metric-card"><div class="metric-icon">⏱️</div><div class="metric-label">Tempo Médio</div><div class="metric-value">2.4h</div><div class="metric-change change-down">▼ 15min</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-header"><div><div class="section-title">Faturamento Mensal</div><div class="section-sub">Últimos 7 meses</div></div><div class="chip">💹 R$ 28.4k</div></div>
+        <div class="bar-chart" id="revenue-chart"></div>
+      </div>
+      <div class="card">
+        <div class="section-header"><div><div class="section-title">OS por Status</div><div class="section-sub">Distribuição atual</div></div></div>
+        <div style="display:flex;gap:20px;align-items:center;justify-content:center;flex-wrap:wrap;padding:8px 0">
+          <div class="donut-wrap">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#142840" stroke-width="12"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#f97316" stroke-width="12" stroke-dasharray="100 140" stroke-dashoffset="35" stroke-linecap="round"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#3b9fd8" stroke-width="12" stroke-dasharray="58 182" stroke-dashoffset="-65" stroke-linecap="round"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#22c55e" stroke-width="12" stroke-dasharray="82 158" stroke-dashoffset="-123" stroke-linecap="round"/>
+            </svg>
+            <div class="donut-label"><div class="donut-val">47</div><div class="donut-sub">Total OS</div></div>
+          </div>
+          <div>
+            <div style="margin-bottom:10px"><div class="flex gap-8"><div style="width:10px;height:10px;border-radius:50%;background:var(--orange);flex-shrink:0"></div><span class="text-sm">Pendente</span><span class="text-sm fw-600 text-orange" style="margin-left:4px">17</span></div></div>
+            <div style="margin-bottom:10px"><div class="flex gap-8"><div style="width:10px;height:10px;border-radius:50%;background:var(--blueL);flex-shrink:0"></div><span class="text-sm">Em andamento</span><span class="text-sm fw-600" style="color:var(--blueL);margin-left:4px">11</span></div></div>
+            <div><div class="flex gap-8"><div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0"></div><span class="text-sm">Finalizado</span><span class="text-sm fw-600 text-green" style="margin-left:4px">19</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-header"><div><div class="section-title">Últimas Ordens de Serviço</div><div class="section-sub">Atualizado agora</div></div><button class="btn btn-ghost btn-sm" onclick="showView('os')">Ver todas →</button></div>
+      <div class="table-wrap"><table><thead><tr><th>OS #</th><th>Cliente</th><th>Tipo</th><th>Técnico</th><th>Status</th><th>Valor</th></tr></thead><tbody id="dash-table"></tbody></table></div>
+    </div>
+    <div class="grid-3">
+      <div class="card"><div class="section-title" style="margin-bottom:14px">🕐 Agenda Hoje</div><div id="agenda-hoje"></div></div>
+      <div class="card"><div class="section-title" style="margin-bottom:14px">📊 Top Serviços</div><div id="top-servicos"></div></div>
+      <div class="card"><div class="section-title" style="margin-bottom:14px">⚡ Atividade Recente</div><div id="atividade-recente"></div></div>
+    </div>
+  </div>
+
+  <!-- ORDENS DE SERVIÇO -->
+  <div class="view" id="view-os">
+    <div class="flex justify-between gap-8" style="margin-bottom:16px;flex-wrap:wrap">
+      <div class="tabs">
+        <div class="tab active" onclick="filterOS('all',this)">Todas (47)</div>
+        <div class="tab" onclick="filterOS('pendente',this)">⏳ Pendentes (17)</div>
+        <div class="tab" onclick="filterOS('andamento',this)">🔵 Em Andamento (11)</div>
+        <div class="tab" onclick="filterOS('finalizado',this)">✅ Finalizadas (19)</div>
+      </div>
+      <button class="btn btn-primary" onclick="showView('os-novo')">➕ Nova OS</button>
+    </div>
+    <div class="grid-2" id="os-list"></div>
+  </div>
+
+  <!-- NOVA OS -->
+  <div class="view" id="view-os-novo">
+    <div style="max-width:680px">
+      <div class="flex gap-12" style="margin-bottom:20px">
+        <button class="btn btn-ghost btn-sm" onclick="showView('os')">← Voltar</button>
+        <div class="section-title">Nova Ordem de Serviço</div>
+      </div>
+      <div class="card">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Cliente</label><select class="form-control"><option>João Silva</option><option>Maria Santos</option><option>Carlos Lima</option><option>Pedro Alves</option></select></div>
+          <div class="form-group"><label class="form-label">Tipo de Serviço</label><select class="form-control"><option>Detecção de Vazamento</option><option>Reparo de Tubulação</option><option>Inspeção Predial</option><option>Teste de Pressão</option></select></div>
+        </div>
+        <div class="form-group"><label class="form-label">Endereço do Atendimento</label><input class="form-control" type="text" placeholder="Rua, número, bairro, cidade"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Data Agendada</label><input class="form-control" type="date"></div>
+          <div class="form-group"><label class="form-label">Técnico Responsável</label><select class="form-control"><option>Carlos Pereira</option><option>Rafael Silva</option><option>Ana Costa</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Prioridade</label><select class="form-control"><option>🔴 Alta</option><option>🟡 Média</option><option>🟢 Baixa</option></select></div>
+          <div class="form-group"><label class="form-label">Valor Estimado (R$)</label><input class="form-control" type="number" placeholder="0,00"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Descrição do Problema</label><textarea class="form-control" rows="3" placeholder="Descreva o problema relatado pelo cliente..."></textarea></div>
+        <div class="divider"></div>
+        <div class="flex gap-12" style="justify-content:flex-end;flex-wrap:wrap">
+          <button class="btn btn-ghost" onclick="showView('os')">Cancelar</button>
+          <button class="wa-btn" style="font-size:11px;padding:8px 12px">📱 Enviar p/ WhatsApp</button>
+          <button class="btn btn-primary" onclick="showView('os')">💾 Salvar OS</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENTES -->
+  <div class="view" id="view-clientes">
+    <div class="flex justify-between gap-8" style="margin-bottom:16px">
+      <input class="form-control" style="max-width:280px" type="text" placeholder="🔍 Buscar cliente...">
+      <button class="btn btn-primary btn-sm">➕ Novo Cliente</button>
+    </div>
+    <div class="card"><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Telefone</th><th>Endereço</th><th>OS Total</th><th>Última OS</th><th>Status</th></tr></thead><tbody id="clientes-table"></tbody></table></div></div>
+  </div>
+
+  <!-- AGENDA -->
+  <div class="view" id="view-agenda">
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-header"><div class="section-title">📅 Abril 2025</div><div class="flex gap-8"><button class="btn btn-ghost btn-sm">◀</button><button class="btn btn-ghost btn-sm">▶</button></div></div>
+        <div class="cal-grid" id="calendar"></div>
+      </div>
+      <div class="card"><div class="section-title" style="margin-bottom:16px">📋 Atendimentos do Dia</div><div id="agenda-list"></div></div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="section-title" style="margin-bottom:14px">🗓️ Próximos 7 dias</div><div id="agenda-semanal"></div></div>
+  </div>
+
+  <!-- MAPA -->
+  <div class="view" id="view-mapa">
+    <div class="grid-3" style="margin-bottom:16px">
+      <div class="metric-card"><div class="metric-label">Chamados Ativos</div><div class="metric-value">12</div></div>
+      <div class="metric-card"><div class="metric-label">Técnicos em Campo</div><div class="metric-value">3</div></div>
+      <div class="metric-card"><div class="metric-label">Área de Cobertura</div><div class="metric-value" style="font-size:16px">São Paulo SP</div></div>
+    </div>
+    <div class="card">
+      <div class="section-header"><div class="section-title">🗺️ Localização dos Chamados</div><div class="chip">🔴 12 ativos</div></div>
+      <div class="map-container">
+        <div class="map-grid"></div>
+        <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.2" viewBox="0 0 600 280">
+          <line x1="0" y1="80" x2="600" y2="80" stroke="#1e6fa8" stroke-width="2"/>
+          <line x1="0" y1="160" x2="600" y2="160" stroke="#1e6fa8" stroke-width="1.5"/>
+          <line x1="0" y1="220" x2="600" y2="220" stroke="#1e6fa8" stroke-width="1"/>
+          <line x1="100" y1="0" x2="100" y2="280" stroke="#1e6fa8" stroke-width="1.5"/>
+          <line x1="280" y1="0" x2="280" y2="280" stroke="#1e6fa8" stroke-width="2"/>
+          <line x1="460" y1="0" x2="460" y2="280" stroke="#1e6fa8" stroke-width="1.5"/>
+          <line x1="0" y1="40" x2="300" y2="200" stroke="#1e6fa8" stroke-width="1"/>
+          <line x1="300" y1="0" x2="600" y2="180" stroke="#1e6fa8" stroke-width="1"/>
+        </svg>
+        <div class="map-pin pin-orange" style="top:30%;left:25%"><div class="map-pin-inner">🔧</div></div>
+        <div class="map-pin pin-orange" style="top:55%;left:60%"><div class="map-pin-inner">🔧</div></div>
+        <div class="map-pin pin-blue" style="top:20%;left:50%"><div class="map-pin-inner">👤</div></div>
+        <div class="map-pin pin-blue" style="top:65%;left:30%"><div class="map-pin-inner">👤</div></div>
+        <div class="map-pin pin-green" style="top:45%;left:75%"><div class="map-pin-inner">✅</div></div>
+        <div class="map-pin pin-orange" style="top:70%;left:45%"><div class="map-pin-inner">🔧</div></div>
+        <div class="map-pin pin-green" style="top:35%;left:80%"><div class="map-pin-inner">✅</div></div>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Pendente / Em andamento</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blueL)"></div>Técnico em campo</div>
+          <div class="legend-item" style="margin-bottom:0"><div class="legend-dot" style="background:var(--green)"></div>Finalizado hoje</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div class="view" id="view-checklist">
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-header"><div class="section-title">✅ Checklist Técnico — OS #0041</div><div class="chip" id="check-progress-chip">0/10</div></div>
+        <div id="checklist-items" style="display:flex;flex-direction:column;gap:6px"></div>
+        <div class="divider"></div>
+        <div class="progress-bar"><div class="progress-fill" id="check-bar" style="width:0%;background:var(--green)"></div></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px;gap:8px">
+          <button class="wa-btn" style="font-size:11px;padding:8px 12px">📱 Enviar via WhatsApp</button>
+          <button class="btn btn-primary btn-sm">📄 Gerar PDF</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title" style="margin-bottom:14px">📝 Observações Técnicas</div>
+        <textarea class="form-control" rows="5" placeholder="Anotações do técnico, equipamentos utilizados, condições do local..."></textarea>
+        <div class="form-group" style="margin-top:12px;margin-bottom:8px"><label class="form-label">Pressão medida (kPa)</label><input class="form-control" type="number" placeholder="Ex: 250"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">Vazão estimada (L/h)</label><input class="form-control" type="number" placeholder="Ex: 45"></div>
+        <button class="btn btn-primary" style="margin-top:14px;width:100%">💾 Salvar Inspeção</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MÍDIA -->
+  <div class="view" id="view-midia">
+    <div class="card">
+      <div class="section-header"><div class="section-title">📷 Registro de Mídia — OS #0041</div></div>
+      <div class="upload-zone">
+        <div style="font-size:32px;margin-bottom:8px">📁</div>
+        <div class="text-sm fw-600">Clique ou arraste arquivos aqui</div>
+        <div class="text-xs" style="margin-top:4px">Fotos, vídeos e laudos técnicos (JPG, PNG, MP4, PDF)</div>
+      </div>
+      <div class="mt-20">
+        <div class="section-title" style="margin-bottom:14px">📂 Arquivos da OS</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px" id="media-grid"></div>
+      </div>
+      <div class="mt-20"><div class="section-title" style="margin-bottom:14px">📋 Laudos Técnicos</div><div id="laudos-list"></div></div>
+    </div>
+  </div>
+
+  <!-- RELATÓRIOS -->
+  <div class="view" id="view-relatorios">
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title" style="margin-bottom:16px">📄 Gerar Relatório PDF</div>
+        <div class="form-group"><label class="form-label">Tipo de Relatório</label><select class="form-control"><option>Ordem de Serviço Completa</option><option>Laudo Técnico de Vazamento</option><option>Relatório Mensal de Serviços</option><option>Demonstrativo Financeiro</option></select></div>
+        <div class="form-group"><label class="form-label">Período</label><div class="form-row"><input class="form-control" type="date"><input class="form-control" type="date"></div></div>
+        <div class="form-group"><label class="form-label">Incluir no Relatório</label>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)"><input type="checkbox" checked> Fotos e mídias</label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)"><input type="checkbox" checked> Checklist técnico</label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)"><input type="checkbox" checked> Dados financeiros</label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)"><input type="checkbox"> Assinatura digital</label>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%">📄 Gerar PDF</button>
+        <button class="wa-btn" style="width:100%;margin-top:8px;justify-content:center">📱 Enviar por WhatsApp</button>
+      </div>
+      <div class="card"><div class="section-title" style="margin-bottom:14px">📂 Relatórios Recentes</div><div id="relatorios-list"></div></div>
+    </div>
+  </div>
+
+  <!-- FINANCEIRO -->
+  <div class="view" id="view-financeiro">
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="metric-card"><div class="metric-label">Receita Total</div><div class="metric-value" style="font-size:20px;color:var(--green)">R$28.4k</div><div class="metric-change change-up">▲ 8%</div></div>
+      <div class="metric-card"><div class="metric-label">Custos</div><div class="metric-value" style="font-size:20px;color:var(--red)">R$9.2k</div><div class="metric-change change-up">▲ 2%</div></div>
+      <div class="metric-card"><div class="metric-label">Lucro Líquido</div><div class="metric-value" style="font-size:20px;color:var(--orange)">R$19.2k</div><div class="metric-change change-up">▲ 11%</div></div>
+      <div class="metric-card"><div class="metric-label">Ticket Médio</div><div class="metric-value" style="font-size:20px">R$604</div><div class="metric-change change-down">▼ 2%</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="section-title" style="margin-bottom:14px">📥 Entradas Recentes</div><div id="fin-entradas"></div></div>
+      <div class="card"><div class="section-title" style="margin-bottom:14px">📤 Saídas / Custos</div><div id="fin-saidas"></div></div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="section-header"><div class="section-title">📊 Lucro por Tipo de Serviço</div></div><div class="bar-chart" id="lucro-chart" style="height:150px"></div></div>
+  </div>
+
+  <!-- NOTIFICAÇÕES -->
+  <div class="view" id="view-notificacoes">
+    <div style="max-width:600px">
+      <div class="section-header"><div class="section-title">🔔 Notificações</div><button class="btn btn-ghost btn-sm">Marcar todas como lidas</button></div>
+      <div id="notifs-list"></div>
+    </div>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="view" id="view-config">
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title" style="margin-bottom:16px">👤 Perfil da Empresa</div>
+        <div class="form-group"><label class="form-label">Nome da Empresa</label><input class="form-control" value="AquaDetect Serviços Ltda"></div>
+        <div class="form-group"><label class="form-label">CNPJ</label><input class="form-control" value="12.345.678/0001-90"></div>
+        <div class="form-group"><label class="form-label">Telefone / WhatsApp</label><input class="form-control" value="(11) 99999-0000"></div>
+        <div class="form-group"><label class="form-label">E-mail</label><input class="form-control" value="contato@aquadetect.com.br"></div>
+        <button class="btn btn-primary btn-sm">💾 Salvar Alterações</button>
+      </div>
+      <div class="card">
+        <div class="section-title" style="margin-bottom:16px">🔐 Usuários e Acessos</div>
+        <div id="users-list"></div>
+        <div class="divider"></div>
+        <button class="btn btn-ghost btn-sm">➕ Adicionar Usuário</button>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+const osData=[
+  {id:'0041',cliente:'João Silva',tipo:'Detecção Vazamento',tecnico:'Carlos P.',status:'pendente',valor:'R$ 450',prioridade:'high',addr:'Rua das Flores, 123 — Vila Madalena',data:'14/04'},
+  {id:'0040',cliente:'Maria Santos',tipo:'Reparo Tubulação',tecnico:'Rafael S.',status:'andamento',valor:'R$ 780',prioridade:'med',addr:'Av. Paulista, 456 — Bela Vista',data:'14/04'},
+  {id:'0039',cliente:'Carlos Lima',tipo:'Inspeção Predial',tecnico:'Ana Costa',status:'finalizado',valor:'R$ 1.200',prioridade:'low',addr:'Rua Augusta, 789 — Consolação',data:'13/04'},
+  {id:'0038',cliente:'Pedro Alves',tipo:'Teste de Pressão',tecnico:'Carlos P.',status:'finalizado',valor:'R$ 320',prioridade:'low',addr:'R. da Consolação, 100 — Cerqueira',data:'13/04'},
+  {id:'0037',cliente:'Fernanda Costa',tipo:'Detecção Vazamento',tecnico:'Rafael S.',status:'pendente',valor:'R$ 550',prioridade:'high',addr:'Av. Brasil, 222 — Mooca',data:'13/04'},
+  {id:'0036',cliente:'Roberto Melo',tipo:'Reparo Tubulação',tecnico:'Ana Costa',status:'andamento',valor:'R$ 890',prioridade:'med',addr:'Rua XV de Novembro, 300',data:'12/04'},
+];
+const clientes=[
+  {nome:'João Silva',tel:'(11) 99111-2233',end:'Rua das Flores, 123',os:8,ultima:'14/04/2025',status:'ativo'},
+  {nome:'Maria Santos',tel:'(11) 98222-3344',end:'Av. Paulista, 456',os:5,ultima:'14/04/2025',status:'ativo'},
+  {nome:'Carlos Lima',tel:'(11) 97333-4455',end:'Rua Augusta, 789',os:12,ultima:'13/04/2025',status:'ativo'},
+  {nome:'Pedro Alves',tel:'(11) 96444-5566',end:'R. da Consolação, 100',os:3,ultima:'13/04/2025',status:'inativo'},
+  {nome:'Fernanda Costa',tel:'(11) 95555-6677',end:'Av. Brasil, 222',os:6,ultima:'13/04/2025',status:'ativo'},
+  {nome:'Roberto Melo',tel:'(11) 94666-7788',end:'Rua XV de Novembro',os:4,ultima:'12/04/2025',status:'ativo'},
+];
+const checkItems=['Verificar pressão da rede','Identificar pontos de acesso','Realizar teste de estanqueidade','Medir vazão do hidrômetro','Inspecionar tubulação exposta','Verificar juntas e conexões','Localizar origem do vazamento','Registrar fotos do local','Anotar materiais necessários','Assinar checklist com cliente'];
+const revenues=[18,22,19,25,21,24,28];
+const months=['Out','Nov','Dez','Jan','Fev','Mar','Abr'];
+const agendaHoje=[
+  {hora:'08:30',cliente:'João Silva',tipo:'Detecção',end:'Rua das Flores'},
+  {hora:'10:00',cliente:'Maria Santos',tipo:'Reparo',end:'Av. Paulista'},
+  {hora:'14:00',cliente:'Carlos Lima',tipo:'Inspeção',end:'Rua Augusta'},
+  {hora:'16:30',cliente:'Pedro Alves',tipo:'Vistoria',end:'Consolação'},
+];
+
+function badge(s){
+  const m={pendente:'badge-pending',andamento:'badge-progress',finalizado:'badge-done'};
+  const l={pendente:'Pendente',andamento:'Em Andamento',finalizado:'Finalizado'};
+  return`<span class="badge ${m[s]}">${l[s]}</span>`;
+}
+
+function initDashTable(){
+  const tb=document.getElementById('dash-table');
+  if(!tb)return;
+  tb.innerHTML=osData.slice(0,5).map(o=>`
+    <tr>
+      <td><span class="text-orange fw-600" style="font-family:'JetBrains Mono',monospace;font-size:11px">#${o.id}</span></td>
+      <td><span class="avatar-sm">${o.cliente[0]}</span>${o.cliente}</td>
+      <td class="td-muted">${o.tipo}</td>
+      <td class="td-muted">${o.tecnico}</td>
+      <td>${badge(o.status)}</td>
+      <td class="fw-600" style="font-family:'JetBrains Mono',monospace">${o.valor}</td>
+    </tr>`).join('');
+}
+
+function initOSList(){
+  const el=document.getElementById('os-list');
+  if(!el)return;
+  el.innerHTML=osData.map(o=>`
+    <div class="os-card priority-${o.prioridade}">
+      <div class="flex justify-between"><span class="os-num">OS #${o.id}</span>${badge(o.status)}</div>
+      <div class="os-title">${o.tipo}</div>
+      <div class="os-addr">📍 ${o.addr}</div>
+      <div class="os-meta">
+        <span class="chip">👤 ${o.cliente}</span>
+        <span class="chip">🔧 ${o.tecnico}</span>
+        <span class="chip">📅 ${o.data}</span>
+        <span class="chip fw-600 text-orange">${o.valor}</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="showView('checklist')">✅ Checklist</button>
+        <button class="btn btn-ghost btn-sm" onclick="showView('midia')">📷 Mídia</button>
+        <button class="wa-btn" style="font-size:10px;padding:5px 10px">📱 WhatsApp</button>
+      </div>
+    </div>`).join('');
+}
+
+function initClientes(){
+  const tb=document.getElementById('clientes-table');
+  if(!tb)return;
+  tb.innerHTML=clientes.map(c=>`
+    <tr>
+      <td><span class="avatar-sm">${c.nome[0]}</span><span class="fw-600">${c.nome}</span></td>
+      <td class="td-muted">${c.tel}</td>
+      <td class="td-muted" style="font-size:12px">${c.end}</td>
+      <td><span class="chip">${c.os} OS</span></td>
+      <td class="td-muted">${c.ultima}</td>
+      <td><span class="badge ${c.status==='ativo'?'badge-done':'badge-cancel'}">${c.status}</span></td>
+    </tr>`).join('');
+}
+
+function initCalendar(){
+  const el=document.getElementById('calendar');
+  if(!el)return;
+  const days=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const evDays=[3,7,10,14,17,21,24,28];
+  let html=days.map(d=>`<div class="cal-header">${d}</div>`).join('');
+  for(let i=0;i<3;i++)html+=`<div></div>`;
+  for(let d=1;d<=30;d++){
+    const t=d===14?' today':'';
+    const e=evDays.includes(d)?' has-event':'';
+    html+=`<div class="cal-day${t}${e}">${d}</div>`;
+  }
+  el.innerHTML=html;
+}
+
+function initAgendaHoje(){
+  const el=document.getElementById('agenda-hoje');
+  if(!el)return;
+  el.innerHTML=agendaHoje.map(a=>`
+    <div class="timeline-item">
+      <div class="tl-dot" style="background:var(--bg3);border:1px solid var(--border);font-size:10px;font-weight:600;color:var(--orange);font-family:'JetBrains Mono'">${a.hora}</div>
+      <div class="tl-content"><div class="tl-title">${a.tipo} — ${a.cliente}</div><div class="tl-sub">📍 ${a.end}</div></div>
+    </div>`).join('');
+}
+
+function initAgendaList(){
+  const el=document.getElementById('agenda-list');
+  if(!el)return;
+  el.innerHTML=agendaHoje.map(a=>`
+    <div class="os-card" style="margin-bottom:8px;padding:12px">
+      <div class="flex justify-between">
+        <span class="text-orange fw-600" style="font-size:13px;font-family:'JetBrains Mono'">${a.hora}</span>
+        <span class="badge badge-progress">Agendado</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:4px">${a.cliente}</div>
+      <div class="text-xs" style="margin-top:2px">📍 ${a.end} · ${a.tipo}</div>
+    </div>`).join('');
+}
+
+function initAgendaSemanal(){
+  const el=document.getElementById('agenda-semanal');
+  if(!el)return;
+  const wd=[
+    {day:'Qui 15',items:['08:30 Fernanda Costa','14:00 Roberto Melo']},
+    {day:'Sex 16',items:['09:00 Novo Cliente','11:30 Pedro Alves','16:00 João Silva']},
+    {day:'Sáb 17',items:['09:00 Maria Santos']},
+    {day:'Dom 18',items:[]},
+    {day:'Seg 20',items:['08:00 Carlos Lima','10:30 Ana Beatriz','14:00 Roberto Melo']},
+  ];
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">
+    ${wd.map(w=>`<div class="card" style="padding:12px">
+      <div style="font-size:12px;font-weight:600;color:var(--orange);margin-bottom:8px">${w.day}</div>
+      ${w.items.length?w.items.map(i=>`<div style="font-size:11px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border)">${i}</div>`).join('')
+      :'<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px">Livre</div>'}
+    </div>`).join('')}</div>`;
+}
+
+function initTopServicos(){
+  const el=document.getElementById('top-servicos');
+  if(!el)return;
+  const s=[
+    {name:'Detecção Vazamento',pct:42,cnt:20},
+    {name:'Reparo Tubulação',pct:28,cnt:13},
+    {name:'Inspeção Predial',pct:18,cnt:9},
+    {name:'Teste de Pressão',pct:12,cnt:5},
+  ];
+  el.innerHTML=s.map(x=>`
+    <div style="margin-bottom:12px">
+      <div class="flex justify-between" style="margin-bottom:4px"><span class="text-sm">${x.name}</span><span class="text-sm fw-600">${x.cnt} OS</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${x.pct}%;background:var(--orange)"></div></div>
+    </div>`).join('');
+}
+
+function initAtividade(){
+  const el=document.getElementById('atividade-recente');
+  if(!el)return;
+  const acts=[
+    {icon:'✅',text:'OS #0038 finalizada',sub:'Carlos P. · 2h atrás'},
+    {icon:'💰',text:'Pagamento R$ 780 recebido',sub:'Maria Santos · 3h'},
+    {icon:'📝',text:'OS #0041 aberta',sub:'Admin · 4h atrás'},
+    {icon:'📄',text:'PDF gerado',sub:'OS #0036 · Ontem'},
+    {icon:'📱',text:'Orçamento enviado',sub:'WhatsApp · Ontem'},
+  ];
+  el.innerHTML=acts.map(a=>`
+    <div class="timeline-item">
+      <div class="tl-dot" style="background:var(--bg3);border:1px solid var(--border)">${a.icon}</div>
+      <div class="tl-content"><div class="tl-title">${a.text}</div><div class="tl-time">${a.sub}</div></div>
+    </div>`).join('');
+}
+
+function initRevenueChart(){
+  const el=document.getElementById('revenue-chart');
+  if(!el)return;
+  const max=Math.max(...revenues);
+  el.innerHTML=revenues.map((v,i)=>`
+    <div class="bar-wrap">
+      <div class="bar-val">R$${v}k</div>
+      <div class="bar bar-orange" style="height:${Math.round((v/max)*100)}px"></div>
+      <div class="bar-label">${months[i]}</div>
+    </div>`).join('');
+}
+
+function initLucroChart(){
+  const el=document.getElementById('lucro-chart');
+  if(!el)return;
+  const services=['Detecção','Reparo','Inspeção','Pressão','Outros'];
+  const vals=[320,580,890,210,440];
+  const max=Math.max(...vals);
+  el.innerHTML=vals.map((v,i)=>`
+    <div class="bar-wrap">
+      <div class="bar-val">R$${v}</div>
+      <div class="bar bar-blue" style="height:${Math.round((v/max)*140)}px"></div>
+      <div class="bar-label">${services[i]}</div>
+    </div>`).join('');
+}
+
+function initChecklist(){
+  const el=document.getElementById('checklist-items');
+  if(!el)return;
+  el.innerHTML=checkItems.map((item,i)=>`
+    <div class="check-item" id="ci-${i}" onclick="toggleCheck(${i})">
+      <div class="check-box" id="cb-${i}"></div>
+      <div class="check-text" id="ct-${i}">${item}</div>
+    </div>`).join('');
+  updateCheckProgress();
+}
+
+function toggleCheck(i){
+  const ci=document.getElementById(`ci-${i}`);
+  ci.classList.toggle('checked');
+  document.getElementById(`cb-${i}`).textContent=ci.classList.contains('checked')?'✓':'';
+  updateCheckProgress();
+}
+
+function updateCheckProgress(){
+  const done=document.querySelectorAll('.check-item.checked').length;
+  const total=checkItems.length;
+  const pct=Math.round((done/total)*100);
+  const bar=document.getElementById('check-bar');
+  const chip=document.getElementById('check-progress-chip');
+  if(bar)bar.style.width=pct+'%';
+  if(chip)chip.textContent=`${done}/${total}`;
+}
+
+function initMedia(){
+  const el=document.getElementById('media-grid');
+  if(el){
+    const files=[
+      {name:'vazamento_01.jpg',icon:'🖼️',size:'2.4 MB'},
+      {name:'tubulacao_02.jpg',icon:'🖼️',size:'1.8 MB'},
+      {name:'video_inspecao.mp4',icon:'🎬',size:'45.2 MB'},
+      {name:'foto_hidrometro.jpg',icon:'🖼️',size:'1.2 MB'},
+    ];
+    el.innerHTML=files.map(f=>`
+      <div class="card" style="padding:12px;text-align:center;cursor:pointer">
+        <div style="font-size:28px;margin-bottom:6px">${f.icon}</div>
+        <div style="font-size:10px;font-weight:600;color:var(--text);word-break:break-all">${f.name}</div>
+        <div class="text-xs" style="margin-top:2px">${f.size}</div>
+      </div>`).join('');
+  }
+  const ll=document.getElementById('laudos-list');
+  if(ll){
+    const laudos=[{nome:'Laudo Técnico #0041.pdf',data:'14/04/2025',size:'890 KB'},{nome:'Relatório Inspeção #0036.pdf',data:'12/04/2025',size:'1.2 MB'}];
+    ll.innerHTML=laudos.map(l=>`
+      <div class="finance-row">
+        <div><div class="fin-label">📄 ${l.nome}</div><div class="text-xs" style="margin-top:2px">${l.data} · ${l.size}</div></div>
+        <div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm">👁️ Ver</button><button class="wa-btn" style="font-size:10px;padding:5px 8px">📱</button></div>
+      </div>`).join('');
+  }
+}
+
+function initRelatorios(){
+  const el=document.getElementById('relatorios-list');
+  if(!el)return;
+  const rel=[
+    {nome:'Relatório Março 2025',tipo:'Mensal',data:'01/04/2025'},
+    {nome:'OS #0039 — Carlos Lima',tipo:'OS Completa',data:'13/04/2025'},
+    {nome:'Demonstrativo Q1 2025',tipo:'Financeiro',data:'31/03/2025'},
+    {nome:'Laudo #0038',tipo:'Laudo Técnico',data:'13/04/2025'},
+  ];
+  el.innerHTML=rel.map(r=>`
+    <div class="finance-row">
+      <div><div class="fin-label fw-600">📄 ${r.nome}</div><div class="text-xs" style="margin-top:2px">${r.tipo} · ${r.data}</div></div>
+      <div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm">⬇️ Baixar</button><button class="wa-btn" style="font-size:10px;padding:5px 8px">📱</button></div>
+    </div>`).join('');
+}
+
+function initFinanceiro(){
+  const el1=document.getElementById('fin-entradas');
+  if(el1){
+    [{desc:'OS #0039 — Carlos Lima',val:'R$ 1.200,00'},{desc:'OS #0038 — Pedro Alves',val:'R$ 320,00'},{desc:'OS #0036 — Roberto Melo',val:'R$ 890,00'},{desc:'OS #0035 — Ana Beatriz',val:'R$ 650,00'}].forEach(e=>{
+      el1.innerHTML+=`<div class="finance-row"><div class="fin-label">${e.desc}</div><div class="fin-value fin-in">${e.val}</div></div>`;
+    });
+  }
+  const el2=document.getElementById('fin-saidas');
+  if(el2){
+    [{desc:'Material — Conexões e vedações',val:'R$ 280,00'},{desc:'Combustível técnicos',val:'R$ 450,00'},{desc:'Equipamento de detecção',val:'R$ 1.200,00'},{desc:'Marketing e divulgação',val:'R$ 600,00'}].forEach(s=>{
+      el2.innerHTML+=`<div class="finance-row"><div class="fin-label">${s.desc}</div><div class="fin-value fin-out">${s.val}</div></div>`;
+    });
+  }
+}
+
+function initNotifs(){
+  const el=document.getElementById('notifs-list');
+  if(!el)return;
+  const notifs=[
+    {title:'Nova OS #0041 aberta',sub:'João Silva — Urgente',time:'Agora',unread:true,dot:'var(--orange)'},
+    {title:'OS #0038 finalizada',sub:'Pedro Alves — Valor: R$ 320',time:'2h atrás',unread:true,dot:'var(--green)'},
+    {title:'Pagamento recebido',sub:'Maria Santos — R$ 780',time:'3h atrás',unread:true,dot:'var(--green)'},
+    {title:'Agendamento amanhã 09h',sub:'Carlos Lima — Inspeção Predial',time:'Ontem',unread:false,dot:'var(--blueL)'},
+    {title:'Relatório mensal disponível',sub:'Março 2025 — 34 serviços',time:'2 dias',unread:false,dot:'var(--orange)'},
+  ];
+  el.innerHTML=notifs.map(n=>`
+    <div class="notif-item${n.unread?' unread':''}">
+      <div class="notif-dot" style="background:${n.dot}"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:${n.unread?'600':'400'};color:var(--text)">${n.title}</div>
+        <div class="text-xs" style="margin-top:2px">${n.sub}</div>
+        <div class="text-xs" style="margin-top:2px;color:var(--text3)">${n.time}</div>
+      </div>
+      ${n.unread?`<div class="notif-dot" style="background:var(--orange);margin-top:4px"></div>`:''}
+    </div>`).join('');
+}
+
+function initUsers(){
+  const el=document.getElementById('users-list');
+  if(!el)return;
+  const users=[
+    {name:'Marcos Rodrigues',role:'Administrador',avatar:'MR',color:'var(--orange)'},
+    {name:'Carlos Pereira',role:'Técnico Sênior',avatar:'CP',color:'var(--blueL)'},
+    {name:'Rafael Silva',role:'Técnico',avatar:'RS',color:'var(--green)'},
+    {name:'Ana Costa',role:'Técnico',avatar:'AC',color:'var(--yellow)'},
+  ];
+  el.innerHTML=users.map(u=>`
+    <div class="flex justify-between" style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="flex gap-8">
+        <div class="user-avatar" style="background:rgba(255,255,255,.05);color:${u.color};border:1px solid ${u.color}">${u.avatar}</div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--text)">${u.name}</div><div class="text-xs">${u.role}</div></div>
+      </div>
+      <button class="btn btn-ghost btn-sm">✏️</button>
+    </div>`).join('');
+}
+
+function updateClock(){
+  const now=new Date();
+  const t=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const d=now.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
+  const el=document.getElementById('clock');
+  if(el)el.textContent=`${d} · ${t}`;
+}
+
+function filterOS(type,el){
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const list=document.getElementById('os-list');
+  if(!list)return;
+  const filtered=type==='all'?osData:osData.filter(o=>o.status===type);
+  list.innerHTML=filtered.map(o=>`
+    <div class="os-card priority-${o.prioridade}">
+      <div class="flex justify-between"><span class="os-num">OS #${o.id}</span>${badge(o.status)}</div>
+      <div class="os-title">${o.tipo}</div>
+      <div class="os-addr">📍 ${o.addr}</div>
+      <div class="os-meta">
+        <span class="chip">👤 ${o.cliente}</span>
+        <span class="chip">🔧 ${o.tecnico}</span>
+        <span class="chip">📅 ${o.data}</span>
+        <span class="chip fw-600 text-orange">${o.valor}</span>
+      </div>
+    </div>`).join('');
+}
+
+const titles={dashboard:'Dashboard',os:'Ordens de Serviço','os-novo':'Nova OS',clientes:'Clientes',agenda:'Agenda',mapa:'Mapa de Chamados',checklist:'Checklist Técnico',midia:'Fotos e Laudos',relatorios:'Relatórios PDF',financeiro:'Financeiro',notificacoes:'Notificações',config:'Configurações'};
+const viewInits={
+  dashboard:()=>{initDashTable();initRevenueChart();initAgendaHoje();initTopServicos();initAtividade()},
+  os:initOSList,clientes:initClientes,
+  agenda:()=>{initCalendar();initAgendaList();initAgendaSemanal()},
+  checklist:initChecklist,midia:initMedia,relatorios:initRelatorios,
+  financeiro:()=>{initFinanceiro();initLucroChart()},
+  notificacoes:initNotifs,config:initUsers
+};
+const inited={};
+
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById(`view-${v}`);
+  if(el)el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelector(`.nav-item[onclick="showView('${v}')"]`)?.classList.add('active');
+  const pt=document.getElementById('page-title');
+  if(pt)pt.textContent=titles[v]||v;
+  if(!inited[v]&&viewInits[v]){viewInits[v]();inited[v]=true;}
+}
+
+updateClock();
+setInterval(updateClock,10000);
+showView('dashboard');
+inited['dashboard']=true;
+</script>
+</body>
+</html>
